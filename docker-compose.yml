@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # MySQL Service
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword  
+      MYSQL_DATABASE: example  
+      MYSQL_USER: example  
+      MYSQL_PASSWORD: example 
+    volumes:
+      - mysql-data:/var/lib/mysql  
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql  
+    ports:
+      - "3308:3306"  
+
+  # Java Application Service
+  java-app:
+    build:
+      context: .
+      dockerfile: Dockerfile  
+    container_name: java-app
+    depends_on:
+      - mysql  
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/example
+      - SPRING_DATASOURCE_USERNAME=example
+      - SPRING_DATASOURCE_PASSWORD=example
+    ports:
+      - "8080:8080"  
+    command: ["java", "-jar", "/app/java-mysql-example-1.0-SNAPSHOT.jar"] 
+
+  # Database Setup 
+  db-setup:
+    build:
+      context: .
+    container_name: db-setup
+    depends_on:
+      - mysql 
+    volumes:
+      - ./setup-database.sh:/setup-database.sh
+    entrypoint: ["sh", "/setup-database.sh"]
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword 
+    # Don't expose ports for this setup step
+
+volumes:
+  mysql-data:
+    driver: local  
