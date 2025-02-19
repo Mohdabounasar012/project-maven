@@ -1,5 +1,8 @@
-# Use Maven to build the app and OpenJDK to run it
-FROM maven:3.8.6-jdk-17-slim AS builder
+# Use OpenJDK to build the app
+FROM openjdk:17-jdk-slim AS builder
+
+# Install Maven manually
+RUN apt-get update && apt-get install -y maven
 
 # Set the working directory and copy necessary files
 WORKDIR /app
